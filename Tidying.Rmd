@@ -1,0 +1,75 @@
+---
+title: "Tidying"
+author: "Abby Gillingham"
+date: "2023-04-03"
+output: html_document
+---
+
+```{r packages, include=F}
+library(tidyverse) #install.packages("tidyverse")
+library(here) #install.packages("here")
+library(janitor) #install.packages("janitor")
+library(readxl) #install.packages("readxl")
+```
+
+```{r read in inverts file, include=F}
+inverts <- read_excel(here("data", "inverts.xlsx"))
+view(inverts)
+names(inverts)
+summary(inverts)
+```
+
+#### Convert data that is too wide into a longer format:
+```{r}
+inverts_long <- pivot_longer(data=inverts, cols="2016":"2018", names_to="year", values_to="sp_count")
+inverts_long
+class(inverts_long)
+```
+#### Use "mutate()" to convert our new year column to numberic data:
+```{r}
+inverts_long <- inverts_long %>% mutate(year=as.numeric(year))
+class(inverts_long$year)
+```
+
+#### Convert data that is too long to a wider format:
+```{r}
+inverts_wide <- inverts_long %>% pivot_wider(names_from=common_name, values_from=sp_count)
+inverts_wide
+```
+
+#### Use "janitor::clean_names()" to automatically convert column names to lower_snake_case:
+```{r}
+inverts_wide <- inverts_wide %>% clean_names()
+names(inverts_wide)
+```
+
+#### Combine, or "Unite" columns and name the new column:
+```{r}
+inverts_unite <- inverts_long %>% unite(col="site_year", c(site, year), sep="_")
+inverts_unite
+```
+
+#### Activity 7.6.1.1
+```{r}
+inverts_moyr <- inverts_long %>% unite(col="mo_yr", c(month, year), sep="/")
+inverts_moyr
+```
+
+#### Unite more than two columns:
+```{r}
+inverts_triple_unite <- inverts_long %>% unite(col="year_site_name", c(year, site, common_name), sep="-")
+inverts_triple_unite
+```
+
+#### Separate a **character** column into multiple columns:
+```{r}
+inverts_sep <- inverts_unite %>% separate(site_year, into=c("my_site", "my_year"))
+inverts_sep
+```
+
+#### Replace strings throughout a dataset with "str_replace()":
+```{r}
+ca_abbr <- inverts %>% mutate(common_name=str_replace(common_name, pattern="california", replacement="CA"))
+ca_abbr
+```
+
