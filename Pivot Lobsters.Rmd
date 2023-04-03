@@ -1,0 +1,92 @@
+---
+title: "Pivot Lobsters"
+author: "Abby Gillingham"
+date: "2023-03-30"
+output: html_document
+---
+
+```{r load-packages, include = F}
+library(skimr) #install.packages("skimr")
+library(kableExtra) #install.packages("kableExtra")
+library(dplyr) #install.packages("dplyr")
+library(magrittr) #install.packages("magrittr")
+library(tidyverse)
+library(readxl)
+library(here)
+options(dplyr.summarise.inform=F)
+```
+
+
+```{r read in data skip first four lines, include=F}
+lobsters <- read_xlsx(here("data/lobsters.xlsx"), skip=4)
+```
+
+## Explore Data: Basic skim Function
+```{r explore data}
+skimr::skim(lobsters)
+```
+
+## Building Pivot Tables
+Group by year, site, color, National Park, etc.
+Summarize within that group using functions like count (n()), or mean (mean()) or standard deviation (sd()).
+```{r}
+lobsters %>% group_by(year) %>% summarize(count_by_year = n())
+```
+
+Group by multiple variables:
+```{r}
+lobsters %>% group_by(site, year) %>% summarize(count_by_siteyear=n())
+```
+
+And summarize multiple variables with multiple functions:
+```{r}
+siteyear_summary <- lobsters %>% group_by(site, year) %>% summarize(count_by_siteyear=n(), mean_size_mm=mean(size_mm), sd_size_mm=sd(size_mm))
+siteyear_summary
+```
+
+## Customizing Pivot Tables:
+* If some data is listed as "NA", you can remove this missing data using "na.rm=T", with na referring to the missing data, rm meaning remove, and T meaning T (i.e. "See that missing data? Remove it.)
+```{r}
+lobsters %>% group_by(site, year) %>% summarize(count_by_siteyear=n(), mean_size_mm=mean(size_mm, na.rm=T), sd_size_mm=sd(size_mm, na.rm=T))
+```
+
+* To make your pivot table headers prettier, assign names in quotation marks:
+```{r}
+siteyear_summary_labs <- lobsters %>% group_by("Site"=site, "Year"=year) %>% summarize("Count"=n(), "Mean"=mean(size_mm, na.rm=T), "St.Dev"=sd(size_mm, na.rm=T))
+siteyear_summary_labs
+```
+
+* To format your table further, use kable():
+```{r}
+siteyear_summary_labs %>% kable()
+```
+
+### 6.4.6 Activity
+```{r}
+mean_by_siteyear_plot <- lobsters %>% group_by("Site"=site, "Year"=year) %>% summarize("Mean"=mean(size_mm, na.rm=T))
+```
+
+```{r plot mean size by site and year}
+mean_by_siteyear <- ggplot(data=mean_by_siteyear_plot, aes(x=Year, y=Mean))
+mean_by_siteyear+geom_col(aes(fill=Site))+labs(y="Mean Size (mm)", title="Mean Lobster Size by Site", subtitle="(2012 - 2016)", col="Site")+theme(axis.text.x=element_text(angle=90))+facet_wrap(~Site)
+```
+
+```{r}
+mean_by_siteyear+geom_line(aes(color=Site))+labs(y="Mean Size (mm)", title="Mean Lobster Size by Site", subtitle="(2012 - 2016)", col="Site")
+```
+
+##### Real Solution:
+```{r}
+lobsters %>% group_by(site, year) %>% summarize(count_by_siteyear=n(), mean_size_mm=mean(size_mm, na.rm=T), sd_size_mm=sd(size_mm, na.rm=T), median_size_mm=median(size_mm, na.rm=T))
+```
+
+```{r}
+lobsters %>% mutate(size_m=size_mm/1000)
+lobsters_detailed <- lobsters %>% mutate(size_m=size_mm/1000, millenia=2000, observer="AH")
+```
+
+```{r}
+lobsters_detailed %>% select(date, site, size_m)
+```
+
+
