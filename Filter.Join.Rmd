@@ -1,0 +1,79 @@
+---
+title: "Filter.Join"
+author: "Abby Gillingham"
+date: "2023-04-03"
+output: html_document
+---
+
+```{r packages, include=F}
+library(tidyverse) #install.packages("tidyvers")
+library(readxl) #install.packages("readxl")
+library(here) #install.packages("here")
+library(kableExtra) #install.packages("kableExtra")
+```
+
+```{r read in files, include=F}
+fish <- read_csv(here("data", "fish.csv"))
+kelp_abur <- read_excel(here("data", "kelp.xlsx"), sheet="abur")
+```
+
+#### Filter rows by a common string:
+```{r}
+fish_garibaldi <- fish %>% filter(common_name == "garibaldi")
+fish_garibaldi
+```
+
+#### Activity 8.3.1.1
+```{r}
+fish_mohk <- fish %>% filter(site == "mohk")
+fish_mohk
+```
+
+#### Filter rows by numeric conditions:
+```{r}
+fish_over50 <- fish %>% filter(total_count >= 50)
+fish_over50
+```
+
+#### Filter rows by multiple common strings:
+```{r}
+fish_3sp <- fish %>% filter(common_name %in% c("garibaldi", "blacksmith", "black surfperch"))
+fish_3sp
+```
+
+#### Activity 8.3.3.1
+```{r}
+fish_gar_2016 <- fish %>% filter(common_name=="garibaldi" | year=="2016")
+fish_gar_2016
+fish %>% filter(common_name=="garibaldi", year=="2016")
+```
+
+#### Activity 8.3.5
+```{r}
+low_gb_wr <- fish %>% filter(common_name=="garibaldi" | common_name=="rock wrasse") %>% filter(total_count <= 10)
+low_gb_wr
+```
+Original solution:
+```{r}
+fish %>% filter(common_name %in% c("garibaldi", "rock wrasse"), total_count <= 10)
+```
+
+## Filtering with **AND** and **OR** at the same time:
+#### Use "|" for OR, and "," for AND, then separate the OR and AND with separate "filter()" functions:
+```{r}
+fish %>% filter(common_name=="garibaldi" | common_name=="rock wrasse") %>% filter(total_count <= 10)
+```
+
+
+#### Filter by **detecting** a partial pattern:
+```{r}
+fish_black <- fish %>% filter(str_detect(common_name, pattern = "black"))
+fish_black
+```
+
+#### Activity 8.3.7
+```{r}
+fish_it <- fish %>% filter(str_detect(common_name, pattern = "it"))
+fish_it
+```
+
