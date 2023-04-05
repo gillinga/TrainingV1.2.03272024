@@ -10,6 +10,8 @@ library(tidyverse) #install.packages("tidyvers")
 library(readxl) #install.packages("readxl")
 library(here) #install.packages("here")
 library(kableExtra) #install.packages("kableExtra")
+library(gapminder) #install.packages("gapminder")
+library(hablar) #install.packages("hablar")
 ```
 
 ```{r read in files, include=F}
@@ -75,5 +77,56 @@ fish_black
 ```{r}
 fish_it <- fish %>% filter(str_detect(common_name, pattern = "it"))
 fish_it
+```
+
+### Joining:
+#### Use "full_join()" when in doubt; it will combine everything from two datasets.
+```{r}
+abur_kelp_fish <- kelp_abur %>% full_join(fish, by=c("year", "site"))
+abur_kelp_fish
+```
+
+#### Left joining with "left_join()":
+```{r}
+kelp_fish_left <- kelp_abur %>% left_join(fish, by=c("year", "site"))
+kelp_fish_left
+```
+```{r right join, include=F}
+kelp_fish_right <- kelp_abur %>% right_join(fish, by=c("year", "site"))
+kelp_fish_right
+```
+Joining left or right maintains all columns from the table indicated (left table for left_join() and right table for right_join()) and adds data from the other table that matches with the first table.
+
+#### Inner joining with "inner_join()":
+```{r}
+kelp_fish_injoin <- kelp_abur %>% inner_join(fish, by=c("year", "site"))
+kelp_fish_injoin
+```
+
+#### Challenge 8.4.4
+```{r}
+fish_17_abur <- fish %>% filter(year=="2017", site=="abur")
+kelp_abur1 <- kelp_abur %>% mutate(year=str_replace(year, pattern="17", replacement="2017")) %>% mutate(year=str_replace(year, pattern="18", replacement="2018")) %>% mutate(year=str_replace(year, pattern="19", replacement="2019")) %>% convert(num(year))
+
+fish_17_abur_joined <- fish_17_abur %>% left_join(kelp_abur1, by=c("year", "site"))
+
+my_fish_joined <- fish_17_abur_joined %>% mutate(fish_per_frond = total_count/total_fronds)
+my_fish_joined
+```
+
+Also do the same thing more concisely (still have to re-format kelp_abur):
+```{r}
+my_fish_joined1 <- fish %>% filter(year==2017, site=="abur") %>% left_join(kelp_abur1, by=c("year", "site")) %>% mutate(fish_per_frond = total_count/total_fronds)
+my_fish_joined1
+```
+
+```{r include=F}
+kable(my_fish_joined)
+my_fish_joined %>% kable() %>% kable_styling(bootstrap_options="striped", full_width=F)
+```
+
+```{r}
+colnames(my_fish_joined) = c("Year", "Site", "Common Name", "Total", "Month", "Total Fronds", "Fish per Frond")
+my_fish_joined
 ```
 
